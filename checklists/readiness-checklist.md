@@ -1,16 +1,18 @@
-# Readiness Checklist – Lab 05
+# Readiness Checklist - Lab 05
 
-Đây là danh sách kiểm tra (checklist) để đảm bảo stack Docker Compose của bạn đã sẵn sàng trước khi gửi bài. Hãy tick vào mỗi mục sau khi hoàn thành.
+Danh sach nay dung de kiem tra stack Docker Compose truoc khi nop bai.
 
-- [ ] **Database ready:** container DB đã chạy và phản hồi `pg_isready`. Kiểm tra bằng `docker exec -it fit4110-db-lab05 pg_isready -U $POSTGRES_USER`.
-- [ ] **AI service ready:** container AI service trả về `200` cho endpoint `/health` và `/predict` hoạt động.
-- [ ] **API ready:** container API trả `200` cho `/health` và có thể tạo/lấy readings khi token hợp lệ.
-- [ ] **Environment variables:** `.env` đã được thiết lập đúng (APP_PORT, POSTGRES_USER, AUTH_TOKEN,…). Không sử dụng secret thật; lưu secret vào `.env` cục bộ, commit `.env.example`.
-- [ ] **Network & Ports:** mạng `team-internal` hoạt động; API gọi được AI bằng hostname `ai-service`; ports 8000 (API), 9000 (AI) và 5432 (DB) được map đúng.
-- [ ] **Image tags:** bạn đã build image với tag `v0.1.0-<team>` và push lên registry (ghcr.io hoặc Docker Hub). Xác nhận rằng tag xuất hiện trong registry.
+- [x] **Database ready:** `db` dung PostgreSQL 15, co healthcheck `pg_isready`, co volume `db-data`, va map port `5432`.
+- [x] **AI service ready:** `ai-service` tu build Dockerfile rieng, chay non-root, co `/health`, `/predict`, healthcheck va map port `9000`.
+- [x] **API ready:** `api` chay non-root, giu healthcheck `/health`, doi DB va AI healthy bang `depends_on`, luu readings vao PostgreSQL va goi AI qua `http://ai-service:9000`.
+- [x] **Environment variables:** `.env.example` co `APP_PORT`, `AI_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `SERVICE_VERSION`, `AUTH_TOKEN`, `DATABASE_URL`, `AI_SERVICE_URL`; khong commit secret that.
+- [x] **Network & ports:** cac service giao tiep noi bo qua `team-internal`; API tham gia them `class-net`; ports 8000, 9000 va 5432 duoc map ra host de test.
+- [x] **Version/tag:** version runtime dat theo quy uoc `v0.1.0-team-iot`. Khi nop that, build va push image len registry voi tag tuong ung.
+- [x] **Newman evidence:** `postman/collections/FIT4110_lab05_iot.postman_collection.json` va environment local da san sang; `npm run test:compose` xuat report vao `reports/`.
 
-Ghi chú thêm những vấn đề gặp phải hoặc điều chỉnh tại đây:
+Ghi chu:
 
-```
-- Mô tả…
+```text
+- Stack duoc cau hinh de chay duoc tu clone moi bang .env.example.
+- Neu co .env rieng, Docker Compose van dung gia tri trong .env cho bien interpolation.
 ```

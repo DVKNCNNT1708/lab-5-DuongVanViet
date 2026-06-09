@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="FIT4110 Lab05 IoT Compose" tests="5" time="0.136">
+  <testsuite name="Health check" id="3250eab1-df6c-43ff-a054-4d17b690693e" timestamp="2026-06-09T09:01:47.012Z" tests="2" failures="0" errors="0" time="0.054">
+    <testcase name="health returns 200" time="0.054" classname="HealthCheck"/>
+    <testcase name="service is healthy" time="0.054" classname="HealthCheck"/>
+  </testsuite>
+  <testsuite name="Create reading" id="96365be1-5a52-459b-8f8c-4b5bd488d7b8" timestamp="2026-06-09T09:01:47.012Z" tests="2" failures="0" errors="0" time="0.037">
+    <testcase name="reading is created" time="0.037" classname="CreateReading"/>
+    <testcase name="response has reading id" time="0.037" classname="CreateReading"/>
+  </testsuite>
+  <testsuite name="Latest readings" id="9fb36673-03e7-4a82-826c-92cfbdaef8b5" timestamp="2026-06-09T09:01:47.012Z" tests="2" failures="0" errors="0" time="0.020">
+    <testcase name="latest returns 200" time="0.020" classname="LatestReadings"/>
+    <testcase name="latest contains items" time="0.020" classname="LatestReadings"/>
+  </testsuite>
+  <testsuite name="Get reading by id" id="e7c121d0-bce6-4480-9344-5344fabfcdf2" timestamp="2026-06-09T09:01:47.012Z" tests="2" failures="0" errors="0" time="0.019">
+    <testcase name="get by id returns 200" time="0.019" classname="GetReadingById"/>
+    <testcase name="id matches created reading" time="0.019" classname="GetReadingById"/>
+  </testsuite>
+  <testsuite name="Unauthorized reading request" id="b6d95247-4032-49ff-acb8-ba4828196fcd" timestamp="2026-06-09T09:01:47.012Z" tests="2" failures="0" errors="0" time="0.006">
+    <testcase name="missing token returns 401" time="0.006" classname="UnauthorizedReadingRequest"/>
+    <testcase name="problem details returned" time="0.006" classname="UnauthorizedReadingRequest"/>
+  </testsuite>
+</testsuites>

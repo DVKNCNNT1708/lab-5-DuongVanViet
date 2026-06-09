@@ -40,7 +40,10 @@ paths:
                   value:
                     status: ok
                     service: iot-ingestion
-                    version: 0.5.0
+                    version: v0.1.0-team-iot
+                    dependencies:
+                      database: ok
+                      ai_service: ok
 
   /readings:
     post:
@@ -316,18 +319,30 @@ components:
 
     HealthResponse:
       type: object
-      required: [status, service, version]
+      required: [status, service, version, dependencies]
       properties:
         status:
           type: string
-          enum: [ok]
+          enum: [ok, degraded]
           example: ok
         service:
           type: string
           example: iot-ingestion
         version:
           type: string
-          example: 0.5.0
+          example: v0.1.0-team-iot
+        dependencies:
+          type: object
+          required: [database, ai_service]
+          properties:
+            database:
+              type: string
+              enum: [ok, error, disabled]
+              example: ok
+            ai_service:
+              type: string
+              enum: [ok, error, disabled]
+              example: ok
 
     ProblemDetails:
       type: object

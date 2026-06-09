@@ -1,0 +1,195 @@
+{
+  "info": {
+    "name": "FIT4110 Lab05 IoT Compose",
+    "_postman_id": "7c6aef1a-42f3-41a4-bab3-6f0ad0a31505",
+    "description": "End-to-end smoke tests for the Lab 05 Docker Compose stack.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('health returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('service is healthy', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.be.oneOf(['ok', 'degraded']);",
+              "  pm.expect(body.service).to.eql('iot-ingestion');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create reading",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 31.5,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/readings",
+          "host": ["{{baseUrl}}"],
+          "path": ["readings"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('reading is created', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "pm.test('response has reading id', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.accepted).to.eql(true);",
+              "  pm.expect(body.reading_id).to.match(/^R-[0-9]{8}-[0-9]{4}$/);",
+              "  pm.collectionVariables.set('readingId', body.reading_id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Latest readings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/readings/latest?limit=5",
+          "host": ["{{baseUrl}}"],
+          "path": ["readings", "latest"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "5"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('latest returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('latest contains items', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.items).to.be.an('array');",
+              "  pm.expect(body.items.length).to.be.greaterThan(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get reading by id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/readings/{{readingId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["readings", "{{readingId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('get by id returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('id matches created reading', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.reading_id).to.eql(pm.collectionVariables.get('readingId'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unauthorized reading request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/readings/latest",
+          "host": ["{{baseUrl}}"],
+          "path": ["readings", "latest"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('missing token returns 401', function () {",
+              "  pm.response.to.have.status(401);",
+              "});",
+              "pm.test('problem details returned', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql(401);",
+              "  pm.expect(body.type).to.include('unauthorized');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "readingId",
+      "value": ""
+    }
+  ]
+}
