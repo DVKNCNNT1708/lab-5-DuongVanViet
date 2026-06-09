@@ -1,14 +1,14 @@
 # Postman Collections
 
-Thu muc nay chua collection dung de chay Newman tren stack Docker Compose.
+Repo nay da kem san collection `FIT4110_lab05_iot_compose.postman_collection.json` de chay Newman tren stack Docker Compose cua Provider AI Vision.
 
-- Collection: `FIT4110_lab05_iot.postman_collection.json`
-- Environment: `../environments/FIT4110_lab05_local.postman_environment.json`
+Collection nay dung environment `postman/environments/FIT4110_lab05_local.postman_environment.json` voi:
 
-Chay test:
+- `baseUrl=http://localhost:8000`
+- `authToken=local-dev-token`
+
+Ban co the chay nhanh bang:
 
 ```bash
 npm run test:compose
 ```
-
-Lenh tren se kiem tra `/health`, tao reading, lay danh sach latest, lay reading theo id va kiem tra truong hop thieu token.

@@ -1,0 +1,224 @@
+{
+  "info": {
+    "_postman_id": "416a6605-61db-4dc8-a86f-b5e90f7c6cb8",
+    "name": "FIT4110 Lab05 AI Vision Compose",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Provider-side checks for the AI Vision Docker Compose stack."
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('health returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('health payload matches AI Vision contract', function () {",
+              "  pm.expect(body.status).to.eql('ok');",
+              "  pm.expect(body.service).to.eql('ai-vision');",
+              "  pm.expect(body.time).to.be.a('string');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Detection",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now().toString();",
+              "pm.collectionVariables.set('requestId', `REQ-CAM-${suffix}`);",
+              "pm.collectionVariables.set('traceId', `TRACE-${suffix}`);",
+              "pm.collectionVariables.set('correlationId', `CORR-${suffix}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('create detection returns 202', function () {",
+              "  pm.response.to.have.status(202);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('detectionId', body.detectionId);",
+              "pm.test('submission payload is valid', function () {",
+              "  pm.expect(body.status).to.eql('PROCESSING');",
+              "  pm.expect(body.requestId).to.eql(pm.collectionVariables.get('requestId'));",
+              "  pm.expect(body.traceId).to.eql(pm.collectionVariables.get('traceId'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{correlationId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requestId\": \"{{requestId}}\",\n  \"cameraId\": \"CAM-ER-01\",\n  \"capturedAt\": \"2026-06-09T08:00:00Z\",\n  \"traceId\": \"{{traceId}}\",\n  \"zoneId\": \"ER-ENTRANCE\",\n  \"motionLevel\": 0.92,\n  \"notes\": \"Motion detected near emergency entrance\",\n  \"imageSource\": {\n    \"sourceType\": \"IMAGE_URL\",\n    \"url\": \"https://media.hospital.local/camera/CAM-ER-01/frame-1001.jpg\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/vision/detect",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vision",
+            "detect"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Detection By Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{correlationId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vision/detections/{{detectionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vision",
+            "detections",
+            "{{detectionId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('get detection returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('detection payload is valid', function () {",
+              "  pm.expect(body.detectionId).to.eql(pm.collectionVariables.get('detectionId'));",
+              "  pm.expect(body.status).to.eql('COMPLETED');",
+              "  pm.expect(body.modelVersion).to.be.a('string');",
+              "  pm.expect(body.objects).to.be.an('array');",
+              "  pm.expect(body.objects.length).to.be.greaterThan(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Model Info",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{correlationId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vision/models/info",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vision",
+            "models",
+            "info"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('model info returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('model info payload is valid', function () {",
+              "  pm.expect(body.modelName).to.eql('yolo-hospital-monitor');",
+              "  pm.expect(body.modelVersion).to.be.a('string');",
+              "  pm.expect(body.supportedObjectTypes).to.include('PERSON');",
+              "  pm.expect(body.supportedImageSourceTypes).to.include('IMAGE_URL');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "detectionId",
+      "value": ""
+    },
+    {
+      "key": "requestId",
+      "value": ""
+    },
+    {
+      "key": "traceId",
+      "value": ""
+    },
+    {
+      "key": "correlationId",
+      "value": ""
+    }
+  ]
+}

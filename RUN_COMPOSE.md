@@ -1,98 +1,123 @@
 # RUN_COMPOSE.md - Huong dan chay Lab 05
 
-Tai lieu nay huong dan clone repo sach va chay lai toan bo stack Docker Compose cua Lab 05.
+Tai lieu nay huong dan clone repo sach va chay lai stack Docker Compose cua nhom Provider AI Vision.
 
-## 1. Chuan bi
-
-Can co:
-
-- Docker Desktop hoac Docker Engine co Compose v2.
-- Node.js 20.x LTS neu muon chay Newman report.
-- Git de clone repo.
-
-## 2. Chay stack Docker Compose
-
-Repo da co `.env.example` voi gia tri demo khong phai secret that. Neu muon tuy bien, tao file `.env` rieng:
+## 1. Clone repo
 
 ```bash
-cp .env.example .env
+git clone <repo-url>
+cd FIT4110_lab05_docker_compose_readiness
 ```
 
-Build va chay 3 service:
+## 2. Cai dependencies tuy chon
 
-```bash
-docker compose up -d --build
-```
-
-Stack tao cac container:
-
-- `fit4110-db-lab05`: PostgreSQL tren port 5432.
-- `fit4110-ai-lab05`: AI mock service tren port 9000.
-- `fit4110-api-lab05`: FastAPI IoT API tren port 8000.
-
-Theo doi log:
-
-```bash
-docker compose logs -f
-```
-
-## 3. Kiem tra readiness
-
-```bash
-curl http://localhost:8000/health
-curl http://localhost:9000/health
-docker exec -it fit4110-db-lab05 pg_isready -U lab05 -d iotdb
-```
-
-Tao mot reading qua API:
-
-```bash
-curl -X POST http://localhost:8000/readings \
-  -H "Authorization: Bearer local-dev-token" \
-  -H "Content-Type: application/json" \
-  -d '{"device_id":"ESP32-LAB-A01","metric":"temperature","value":31.5,"unit":"celsius","timestamp":"2026-05-13T08:30:00+07:00"}'
-```
-
-API se goi AI service qua hostname noi bo `ai-service` va luu reading vao PostgreSQL qua hostname `db`.
-
-## 4. Chay Newman
-
-Cai Node dependencies:
+Can cai Node.js neu muon chay Newman:
 
 ```bash
 npm install
 ```
 
-Chay test end-to-end tren stack Compose:
+## 3. Tao file env
+
+```bash
+cp .env.example .env
+```
+
+Mac dinh file `.env.example` da co san:
+
+- `AUTH_TOKEN=local-dev-token`
+- `SERVICE_NAME=ai-vision`
+- `SERVICE_VERSION=1.0.0`
+- `AI_SERVICE_URL=http://ai-service:9000`
+- `MODEL_NAME=yolo-hospital-monitor`
+- `MODEL_VERSION=yolov11n-hospital-2.3.1`
+
+## 4. Build va chay stack
+
+```bash
+docker compose up -d --build --wait
+```
+
+Cac container duoc tao:
+
+- `fit4110-db-lab05`
+- `fit4110-ai-lab05`
+- `fit4110-api-lab05`
+
+## 5. Kiem tra health
+
+```bash
+curl http://localhost:8000/health
+curl http://localhost:9000/health
+docker compose exec -T db pg_isready -U "$POSTGRES_USER"
+```
+
+Kiem tra endpoint chinh cua Provider API:
+
+```bash
+curl -X POST http://localhost:8000/vision/detect \
+  -H "Authorization: Bearer local-dev-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requestId": "REQ-CAM-20260609-0001",
+    "cameraId": "CAM-ER-01",
+    "capturedAt": "2026-06-09T08:00:00Z",
+    "traceId": "TRACE-20260609-0001",
+    "zoneId": "ER-ENTRANCE",
+    "motionLevel": 0.92,
+    "notes": "Motion detected near emergency entrance",
+    "imageSource": {
+      "sourceType": "IMAGE_URL",
+      "url": "https://media.hospital.local/camera/CAM-ER-01/frame-1001.jpg"
+    }
+  }'
+```
+
+Kiem tra backend AI mock:
+
+```bash
+curl -X POST http://localhost:9000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requestId": "REQ-CAM-20260609-0001",
+    "cameraId": "CAM-ER-01"
+  }'
+```
+
+## 6. Chay Newman
 
 ```bash
 npm run test:compose
 ```
 
-Report duoc xuat ra:
+Sau khi chay xong, report duoc sinh tai:
 
 ```text
 reports/newman-lab05-compose.xml
 reports/newman-lab05-compose.html
 ```
 
-## 5. Dung stack
+## 7. Theo doi log
+
+```bash
+docker compose logs -f
+```
+
+## 8. Dung stack
 
 ```bash
 docker compose down
 ```
 
-Neu can xoa luon volume PostgreSQL:
+Neu muon xoa ca volume DB:
 
 ```bash
 docker compose down -v
 ```
 
-## 6. Lenh Makefile
+## 9. Meo go loi
 
-```bash
-make compose-up
-make logs
-make test-compose
-make compose-down
-```
+- Dung `docker compose ps` de xem service da `healthy` hay chua.
+- Neu API khong goi duoc backend AI, kiem tra `AI_SERVICE_URL=http://ai-service:9000`.
+- Neu Newman fail do auth, kiem tra `authToken` trong Postman environment co trung voi `AUTH_TOKEN`.
+- Neu DB fail readiness, kiem tra `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` trong `.env`.

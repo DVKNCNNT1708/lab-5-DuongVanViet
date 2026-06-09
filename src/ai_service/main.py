@@ -1,31 +1,71 @@
-"""Simple AI service mock for Lab 05."""
+"""
+Simple inference backend mock for the AI Vision provider API.
+"""
 
 import os
-from typing import List
+from datetime import datetime, timezone
+from typing import Any, Dict, List
 
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
-SERVICE_NAME = "ai-service"
-SERVICE_VERSION = os.getenv("SERVICE_VERSION", "v0.1.0-team-iot")
+SERVICE_NAME = os.getenv("AI_BACKEND_SERVICE_NAME", "ai-model-backend")
+SERVICE_VERSION = os.getenv("MODEL_VERSION", "yolov11n-hospital-2.3.1")
 
 app = FastAPI(
-    title="FIT4110 Lab 05 - AI Service",
+    title="AI Vision Backend Mock",
     version=SERVICE_VERSION,
-    description="Mock AI service used in the Docker Compose stack.",
+    description="Mock backend used by the provider API to simulate model inference.",
 )
 
 
-class Prediction(BaseModel):
-    objects: List[str]
-    confidence: List[float]
+class PredictRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    requestId: str
+    cameraId: str
+
+
+class PredictResponse(BaseModel):
+    confidence: float
+    riskLevel: str
+    summary: str
+    alertHint: str
+    thumbnailUrl: str
+    objects: List[Dict[str, Any]]
+
+
+def now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "service": SERVICE_NAME, "version": SERVICE_VERSION}
+    return {"status": "ok", "service": SERVICE_NAME, "time": now_iso()}
 
 
-@app.post("/predict", response_model=Prediction)
-def predict() -> Prediction:
-    return Prediction(objects=["person", "bicycle"], confidence=[0.98, 0.85])
+@app.post("/predict", response_model=PredictResponse)
+def predict(payload: PredictRequest) -> PredictResponse:
+    thumbnail = f"https://media.hospital.local/thumbnails/{payload.requestId}.jpg"
+    return PredictResponse(
+        confidence=0.98,
+        riskLevel="HIGH",
+        summary=f"Person detected near camera {payload.cameraId}",
+        alertHint="REVIEW_SECURITY",
+        thumbnailUrl=thumbnail,
+        objects=[
+            {
+                "objectType": "PERSON",
+                "label": "human",
+                "confidence": 0.99,
+                "trackId": "TRACK-77",
+                "boundingBox": {"x": 0.12, "y": 0.08, "width": 0.41, "height": 0.82},
+            }
+        ],
+    )
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=9000)
