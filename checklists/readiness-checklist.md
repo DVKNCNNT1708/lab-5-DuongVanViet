@@ -1,18 +1,16 @@
-# Readiness Checklist - Team Vision Lab 05
+# Readiness Checklist - Lab 05
 
-Danh sach nay dung de kiem tra stack Docker Compose truoc khi nop bai.
+Day la danh sach kiem tra de dam bao stack Docker Compose cua Provider AI Vision da san sang truoc khi gui bai.
 
-- [x] **Database ready:** `db` dung PostgreSQL 15, co healthcheck `pg_isready`, co volume `db-data`, va map port `5432`.
-- [x] **AI service ready:** `ai-service` la mock YOLO-style inference worker, chay non-root, co `/health`, `/predict`, healthcheck va map port `9000`.
-- [x] **API ready:** `api` expose contract Team Vision: `/health`, `/vision/detect`, `/vision/detections/{detectionId}`, `/vision/models/info`; API doi DB va AI healthy bang `depends_on`.
-- [x] **Environment variables:** `.env.example` co `APP_PORT`, `AI_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `SERVICE_VERSION`, `MODEL_VERSION`, `AUTH_TOKEN`, `DATABASE_URL`, `AI_SERVICE_URL`; khong commit secret that.
-- [x] **Network & ports:** cac service giao tiep noi bo qua `team-internal`; API tham gia them `class-net`; ports 8000, 9000 va 5432 duoc map ra host de test.
-- [x] **Image tags:** image dung quy uoc `v0.1.0-team-vision`: `fit4110/ai-vision:v0.1.0-team-vision` va `fit4110/vision-inference:v0.1.0-team-vision`.
-- [x] **Newman evidence:** `postman/collections/FIT4110_lab05_team_vision.postman_collection.json` va environment local da san sang; `npm run test:compose` xuat report vao `reports/`.
+- [x] **Database ready:** container DB da chay va phan hoi `pg_isready`.
+- [x] **AI backend ready:** container backend mo phong model tra ve `200` cho `/health` va phan hoi `POST /predict`.
+- [x] **Provider API ready:** API tra `200` cho `/health`, nhan `POST /vision/detect`, doc duoc `GET /vision/detections/{detectionId}` va `GET /vision/models/info`.
+- [x] **Environment variables:** `.env.example` da co `AUTH_TOKEN`, `SERVICE_NAME`, `AI_SERVICE_URL`, `MODEL_NAME`, `MODEL_VERSION` va khong chua secret that.
+- [x] **Network & Ports:** mang `team-internal` hoat dong, provider API map port `8000`, backend AI map port `9000`, DB su dung port `5432` trong stack.
+- [x] **Contract & reports:** OpenAPI da duoc dat trong `contracts/`, Newman collection da khop contract va report duoc sinh trong `reports/`.
 
 Ghi chu:
 
 ```text
-- Stack duoc cau hinh de chay duoc tu clone moi bang .env.example.
-- API luu detection vao PostgreSQL va goi AI worker noi bo bang hostname ai-service.
+- Stack da duoc canh theo contract AI Vision Detection API ma nhom Provider va Consumer da chot.
 ```
